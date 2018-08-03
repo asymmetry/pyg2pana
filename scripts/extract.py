@@ -1,10 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from os.path import exists, join
+from os.path import join
 
-import numpy
-
-from pyg2pana import configs, Data
+from pyg2pana import Data, SimFile, configs
 
 run_list = configs.l_22545000
 
@@ -14,8 +12,19 @@ for key, value in run_list.items():
 
     for run in p_runs + e_runs:
         files = [join('data', 'g2p_{}.root'.format(run))]
-        files += [join('data', 'g2p_{}_{}.root'.format(run, x)) for x in range(1, 3)]
+        files += [
+            join('data', 'g2p_{}_{}.root'.format(run, x)) for x in range(1, 3)
+        ]
 
-        data = Data(files, run)
+        data = Data(files)
         data.save(join('data', 'g2p_{}.npz'.format(run)))
+        del data
+
+    for run in p_runs:
+        files = [
+            join('sim', 'sim_{}_{}.root'.format(run, x)) for x in range(1, 11)
+        ]
+
+        sim = SimFile(files)
+        sim.save(join('sim', 'sim_{}.npz'.format(run)))
         del data

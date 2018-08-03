@@ -1,139 +1,123 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import datetime
-from os.path import join, dirname, realpath
 import sqlite3
 import time
+from datetime import datetime
+from os.path import dirname, join, realpath
+
+__all__ = ['RunDB']
 
 
-class RunDB(object):
+class RunDB():
+    variables = [
+        ('run_quality', 'RunQuality', 'int'),
+        ('run_status', 'RunStatus', 'int'),
+        ('septa_status', 'SeptaStatus', 'int'),
+        ('hwp_status', 'Ihwp', 'int'),
+        ('hwp_status_error', 'IhwpSTD', 'float'),
+        ('ps1', 'ps1', 'float'),
+        ('ps2', 'ps2', 'float'),
+        ('ps3', 'ps3', 'float'),
+        ('ps4', 'ps4', 'float'),
+        ('ps7', 'ps7', 'float'),
+        ('ps8', 'ps8', 'float'),
+        ('target_encoder', 'TargetEncoder', 'float'),
+        ('target_error', 'TargetSTD', 'float'),
+        ('q1p', 'Q1p', 'float'),
+        ('q1p_error', 'Q1pSTD', 'float'),
+        ('q2p', 'Q2p', 'float'),
+        ('q2p_error', 'Q2pSTD', 'float'),
+        ('q3p', 'Q3p', 'float'),
+        ('q3p_error', 'Q3pSTD', 'float'),
+        ('d1p', 'D1p', 'float'),
+        ('d1p_error', 'D1pSTD', 'float'),
+        ('septa_current', 'SeptaI', 'float'),
+        ('septa_current_error', 'SeptaSTD', 'float'),
+        ('beam_energy', 'Energy', 'float'),
+        ('beam_energy_error', 'EnergySTD', 'float'),
+        ('trigger_eff', 'TEff', 'float'),
+        ('deadtime', 'Deadtime', 'float'),
+        ('cer_cut', 'CerCut', 'float'),
+        ('pr1_cut', 'PR1Cut', 'float'),
+        ('sum_cut', 'SumCut', 'float'),
+        ('beam_pol', 'BeamPol', 'float'),
+        ('beam_pol_stat_error', 'BeamPolStat', 'float'),
+        ('beam_pol_sys_error', 'BeamPolSys', 'float'),
+        ('bleed_through', 'Bleedthrough', 'float'),
+        ('one_track_eff', 'OneTrackEff', 'float'),
+        ('all_track_eff', 'AllTrackEff', 'float'),
+        ('all_track_eff_low', 'AllTrackEffLow', 'float'),
+        ('all_track_eff_high', 'AllTrackEffHigh', 'float'),
+        ('target_pol', 'TargetPol', 'float'),
+        ('target_pol_error', 'TargetPolError', 'float'),
+        ('target_pol_stat_error', 'TargetPolStat', 'float'),
+        ('target_pol_sys_error', 'TargetPolSys', 'float'),
+        ('deadtime_plus', 'DTPlus', 'float'),
+        ('deadtime_minus', 'DTMinus', 'float'),
+        ('live_time_asym', 'LTAsym', 'float'),
+        ('charge_asym', 'ChargeAsym', 'float'),
+        ('charge_plus', 'QPlus', 'float'),
+        ('charge_minus', 'QMinus', 'float'),
+        ('charge', 'QTotal', 'float'),
+        ('target_field', 'TargetField', 'float'),
+        ('target_orientation', 'TargetOrientation', 'int'),
+        ('material_id', 'MaterialID', 'int'),
+        ('expert_comment', 'ExpertC', 'string'),
+        ('target_cup', 'TargetCup', 'string'),
+        ('run_start_time', 'RunStartTime', 'time'),
+        ('entry_time', 'EntryTime', 'time'),
+        ('run_stop_time', 'RunStopTime', 'time'),
+        ('cer_eff', 'CerDetEff', 'float'),
+        ('pr_eff', 'PRDetEff', 'float'),
+        ('current', 'Current', 'float'),
+        ('theta_cut_min', 'thCutMin', 'float'),
+        ('theta_cut_max', 'thCutMax', 'float'),
+        ('phi_cut_min', 'phCutMin', 'float'),
+        ('phi_cut_max', 'phCutMax', 'float'),
+        ('sim_cut_x', 'xBeam', 'float'),
+        ('sim_cut_y', 'yBeam', 'float'),
+        ('sim_cut_r', 'rBeam', 'float'),
+        ('slow_raster_cut_x', 'xSR', 'float'),
+        ('slow_raster_cut_y', 'ySR', 'float'),
+        ('slow_raster_cut_r', 'rSR', 'float'),
+    ]
 
     def __init__(self, run):
         if not isinstance(run, int):
             raise TypeError("run must be type 'int'")
 
-        self._con = sqlite3.connect(join(dirname(realpath(__file__)), 'g2p.db'))
+        db_file = join(dirname(realpath(__file__)), 'g2p.db')
+        self._con = sqlite3.connect(db_file)
         self._cur = self._con.cursor()
 
-        variable_list = [
-            ('RunQuality', 'int', 'run_quality'),
-            ('RunStatus', 'int', 'run_status'),
-            ('SeptaStatus', 'int', 'septa_status'),
-            ('Ihwp', 'int', 'hwp_status'),
-            ('IhwpSTD', 'float', 'hwp_status_error'),
-            ('ps7', 'float', 'ps7'),
-            ('ps8', 'float', 'ps8'),
-            ('TargetEncoder', 'float', 'target_encoder'),
-            ('TargetSTD', 'float', 'target_error'),
-            ('Q1p', 'float', 'q1p'),
-            ('Q1pSTD', 'float', 'q1p_error'),
-            ('Q2p', 'float', 'q2p'),
-            ('Q2pSTD', 'float', 'q2p_error'),
-            ('Q3p', 'float', 'q3p'),
-            ('Q3pSTD', 'float', 'q3p_error'),
-            ('D1p', 'float', 'd1p'),
-            ('D1pSTD', 'float', 'd1p_error'),
-            ('SeptaI', 'float', 'septa_current'),
-            ('SeptaSTD', 'float', 'septa_current_error'),
-            ('Energy', 'float', 'beam_energy'),
-            ('EnergySTD', 'float', 'beam_energy_error'),
-            ('TEff', 'float', 'trigger_efficiency'),
-            ('Deadtime', 'float', 'deadtime'),
-            ('CerCut', 'float', 'cer_cut'),
-            ('PR1Cut', 'float', 'pr1_cut'),
-            ('SumCut', 'float', 'sum_cut'),
-            ('BeamPol', 'float', 'beam_pol'),
-            ('BeamPolStat', 'float', 'beam_pol_stat'),
-            ('BeamPolSys', 'float', 'beam_pol_sys'),
-            ('Bleedthrough', 'float', 'bleed_through'),
-            ('OneTrackEff', 'float', 'one_track_eff'),
-            ('AllTrackEff', 'float', 'all_track_eff'),
-            ('AllTrackEffLow', 'float', 'all_track_eff_low'),
-            ('AllTrackEffHigh', 'float', 'all_track_eff_high'),
-            ('TargetPol', 'float', 'target_pol'),
-            ('TargetPolError', 'float', 'target_pol_error'),
-            ('TargetPolStat', 'float', 'target_pol_stat'),
-            ('TargetPolSys', 'float', 'target_pol_sys'),
-            ('DTPlus', 'float', 'dead_time_plus'),
-            ('DTMinus', 'float', 'dead_time_minus'),
-            ('LTAsym', 'float', 'live_time_asym'),
-            ('ChargeAsym', 'float', 'charge_asym'),
-            ('QPlus', 'float', 'charge_plus'),
-            ('QMinus', 'float', 'charge_minus'),
-            ('QTotal', 'float', 'charge_total'),
-            ('TargetField', 'float', 'target_field'),
-            ('TargetOrientation', 'int', 'target_orientation'),
-            ('MaterialID', 'int', 'material_id'),
-            ('ExpertC', 'string', 'expert_comment'),
-            ('TargetCup', 'string', 'target_cup'),
-            ('RunStartTime', 'time', 'run_start_time'),
-            ('EntryTime', 'time', 'entry_time'),
-            ('RunStopTime', 'time', 'run_stop_time'),
-            ('CerDetEff', 'float', 'cer_eff'),
-            ('PRDetEff', 'float', 'pr_eff'),
-            ('Current', 'float', 'current'),
-            ('thCutMin', 'float', 'theta_cut_min'),
-            ('thCutMax', 'float', 'theta_cut_max'),
-            ('phCutMin', 'float', 'phi_cut_min'),
-            ('phCutMax', 'float', 'phi_cut_max'),
-            ('xBeam', 'float', 'sim_cut_x'),
-            ('yBeam', 'float', 'sim_cut_y'),
-            ('rBeam', 'float', 'sim_cut_r'),
-            ('xSR', 'float', 'slow_raster_cut_x'),
-            ('ySR', 'float', 'slow_raster_cut_y'),
-            ('rSR', 'float', 'slow_raster_cut_r'),
-        ]
+        for variable in self.__class__.variables:
+            value = self._search(variable[1], run)
+            if value is None:
+                continue
 
-        if run > 20000:
-            variable_list += [('ps1', 'float', 'ps1'), ('ps2', 'float', 'ps2')]
-        else:
-            variable_list += [('ps3', 'float', 'ps3'), ('ps4', 'float', 'ps4')]
-
-        for variable in variable_list:
-            if variable[1] == 'int':
-                setattr(self, variable[2], self._int_search(variable[0], run))
-            elif variable[1] == 'float':
-                setattr(self, variable[2], self._float_search(variable[0], run))
-            elif variable[1] == 'string':
-                setattr(self, variable[2], self._string_search(variable[0], run))
-            elif variable[1] == 'time':
-                setattr(self, variable[2], self._time_search(variable[0], run))
+            try:
+                if variable[2] == 'int':
+                    value = int(value)
+                elif variable[2] == 'float':
+                    value = float(value)
+                elif variable[2] == 'string':
+                    value = str(value)
+                elif variable[2] == 'time':
+                    value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+                    value = int(time.mktime(value.timetuple()))
+            except (TypeError, ValueError):
+                value = None
+            setattr(self, variable[0], value)
 
     def _search(self, field, run):
         table = 'AnaInfoR' if run > 20000 else 'AnaInfoL'
-        self._cur.execute('Select {} from {} where RunNumber = {}'.format(field, table, run))
-        r = self._cur.fetchone()
+        command = 'Select {} from {}'.format(field, table)
+        condition = 'where {} = {}'.format('RunNumber', run)
+
+        try:
+            self._cur.execute(command + ' ' + condition)
+            r = self._cur.fetchone()
+        except sqlite3.OperationalError:
+            return None
 
         return r[0] if r is not None else None
-
-    def _int_search(self, field, run):
-        result = self._search(field, run)
-        try:
-            result = int(result)
-        except (TypeError, ValueError):
-            result = -999
-        return result
-
-    def _float_search(self, field, run):
-        result = self._search(field, run)
-        try:
-            result = float(result)
-        except (TypeError, ValueError):
-            result = -999.0
-        return result
-
-    def _string_search(self, field, run):
-        result = self._search(field, run)
-        try:
-            result = str(result)
-        except (TypeError, ValueError):
-            result = 'NULL'
-        return result
-
-    def _time_search(self, field, run):
-        result = self._search(field, run)
-        try:
-            result = int(time.mktime(datetime.datetime.strptime(result, '%Y-%m-%d %H:%M:%S').timetuple()))
-        except (TypeError, ValueError):
-            result = -999
-        return result
