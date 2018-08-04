@@ -82,7 +82,9 @@ class Data():
         sr_vars = [
             '{}rb.Raster.rawcurSL.{}'.format(arm, x) for x in ['x', 'y']
         ]
-        gold_vars = ['{}.gold.{}'.format(arm, x) for x in ['th', 'y', 'ph']]
+        gold_vars = [
+            '{}.gold.{}'.format(arm, x) for x in ['th', 'y', 'ph', 'dp']
+        ]
         rec_vars = [
             '{}.rec.{}'.format(arm, x) for x in ['x', 'th', 'y', 'ph', 'dp']
         ]
