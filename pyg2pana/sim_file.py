@@ -47,9 +47,10 @@ class SimFile():
 
     def _load_root(self, files, *args, **kwargs):
         from root_numpy import tree2array
-        from ROOT import TChain
+        import ROOT
+        ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
-        tree = TChain('T')
+        tree = ROOT.TChain('T')
         for file_ in files:
             if exists(file_):
                 tree.Add(file_)
