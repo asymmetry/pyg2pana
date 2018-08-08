@@ -6,7 +6,7 @@ from .data import Data
 from .run_db import RunDB
 from .sim_file import SimFile
 
-from . import configs
+from . import configs, models
 
 __all__ = ['Data', 'RunDB', 'SimFile']  # classes
-__all__ += ['configs']  # modules
+__all__ += ['configs', 'models']  # modules
