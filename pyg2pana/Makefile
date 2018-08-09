@@ -1,4 +1,4 @@
-LIST := xs_models
+LIST := models
 
 all:
 	@make -s -C $(LIST)

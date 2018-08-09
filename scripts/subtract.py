@@ -3,7 +3,7 @@
 import argparse as ap
 
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 
 from pyg2pana import Data
 
@@ -28,15 +28,15 @@ e = Data('data/g2p_{}.npz'.format(run_e), ref=run_p)
 p.cuts = cuts
 e.cuts = cuts
 
-yield_p, _ = numpy.histogram(p.nu[p.cuts], bins=800, range=(-100, 1500))
-yield_e, _ = numpy.histogram(e.nu[e.cuts], bins=800, range=(-100, 1500))
+yield_p, _ = np.histogram(p.nu[p.cuts], bins=800, range=(-100, 1500))
+yield_e, _ = np.histogram(e.nu[e.cuts], bins=800, range=(-100, 1500))
 
 yield_p = yield_p * p.scale
 yield_e = yield_e * e.scale
 
 yield_sub = yield_p / p.charge - yield_e / e.charge
 
-bin_centers = numpy.linspace(-99, 1499, 800)
+bin_centers = np.linspace(-99, 1499, 800)
 
 plt.figure()
 ax = plt.gca()

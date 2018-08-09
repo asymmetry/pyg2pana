@@ -1,8 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from os.path import exists, join
-
-import numpy
 
 from pyg2pana import configs, Data, SimFile
 

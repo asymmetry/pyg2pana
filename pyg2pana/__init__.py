@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
-
-__version__ = '1.0.0'
+"""
+Analysis Softwares for g2p Experiment
+=====================================
+"""
 
 from .data import Data
 from .run_db import RunDB
@@ -8,5 +9,4 @@ from .sim_file import SimFile
 
 from . import configs, models
 
-__all__ = ['Data', 'RunDB', 'SimFile']  # classes
-__all__ += ['configs', 'models']  # modules
+__all__ = [s for s in dir() if not s.startswith('_')]

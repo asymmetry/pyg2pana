@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+# Author: Chao Gu, 2018
 
 import re
 from os.path import exists, splitext
 
-import numpy
+import numpy as np
 
 from .run_db import RunDB
 
@@ -11,6 +11,19 @@ __all__ = ['Data']
 
 
 class Data():
+    """
+    Data Reader
+    -----------
+    Load g2p data rootfiles, extract kinematics for each event and save these
+    information into a numpy npz file.
+
+    Parameters
+    ----------
+    files : sequence of str
+        If all files are rootfiles, root_numpy module is used to extract the
+        kinematics. If all files are npz files, they are directly loaded by
+        numpy.
+    """
 
     def __init__(self, files, *args, **kwargs):
         self._db = None
@@ -46,7 +59,7 @@ class Data():
         self.charge_plus = self._db.charge_plus
         self.charge_minus = self._db.charge_minus
 
-    def _load_root(self, files, *args, **kwargs):
+    def _load_root(self, files, **kwargs):
         from root_numpy import tree2array
         import ROOT
         ROOT.gROOT.SetBatch(ROOT.kTRUE)
@@ -97,44 +110,44 @@ class Data():
             stop=kwargs.get('stop', None),
         )
 
-        self.hel = numpy.rec.fromarrays(
+        self.hel = np.rec.fromarrays(
             [all_vars[x] for x in hel_vars],
             names='val,err',
         )
-        self.bpm = numpy.rec.fromarrays(
+        self.bpm = np.rec.fromarrays(
             [all_vars[x] for x in bpm_vars],
             names='x,y,t,p',
         )
-        self.sr = numpy.rec.fromarrays(
+        self.sr = np.rec.fromarrays(
             [all_vars[x] for x in sr_vars],
             names='x,y',
         )
-        self.gold = numpy.rec.fromarrays(
+        self.gold = np.rec.fromarrays(
             [all_vars[x] for x in gold_vars],
             names='t,y,p',
         )
-        self.rec = numpy.rec.fromarrays(
+        self.rec = np.rec.fromarrays(
             [all_vars[x] for x in rec_vars],
             names='x,t,y,p,d',
         )
 
     def _load_numpy(self, file_):
-        loaded = numpy.load(file_)
+        loaded = np.load(file_)
 
         for var in self._var_list:
-            setattr(self, var, loaded[var].view(numpy.recarray))
+            setattr(self, var, loaded[var].view(np.recarray))
 
     def save(self, file_):
         if all(hasattr(self, x) for x in self._var_list):
             arrays = {x: getattr(self, x) for x in self._var_list}
-            numpy.savez_compressed(file_, **arrays)
+            np.savez_compressed(file_, **arrays)
         else:
             raise ValueError('attributes do not exist')
 
     @property
     def cuts(self):
         if self._cuts is None:
-            return numpy.ones_like(self.rec.d, dtype=bool)
+            return np.ones_like(self.rec.d, dtype=bool)
         cut_y = ((self.gold.y > self._cuts['y'][0]) &
                  (self.gold.y < self._cuts['y'][1]))
         cut_t = ((self.rec.t > self._cuts['t'][0]) &

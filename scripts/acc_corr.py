@@ -4,7 +4,7 @@ from os.path import join
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 from scipy import interpolate
 
 from pyg2pana import Data, SimFile, configs
@@ -44,7 +44,7 @@ for key, value in run_list.items():
 
     acceptance = sim.get_acceptance('nu', **binning)
 
-    hist, _ = numpy.histogram(data.nu[data.cuts], **binning)
+    hist, _ = np.histogram(data.nu[data.cuts], **binning)
     hist = hist * data.scale / data.charge / acceptance
 
     hist_list.append(hist)
@@ -59,12 +59,12 @@ for p0, hist in zip(p0_list, hist_list):
         temp = temp + hist[i]
     yield_.append(temp / 11)
 
-nu = numpy.array(nu)
-yield_ = numpy.array(yield_)
+nu = np.array(nu)
+yield_ = np.array(yield_)
 yield_func = interpolate.interp1d(
     nu, yield_, kind='cubic', fill_value='extrapolate')
 
-x = numpy.linspace(
+x = np.linspace(
     binning['range'][0] +
     (binning['range'][1] - binning['range'][0]) / binning['bins'] / 2,
     binning['range'][1] -
@@ -87,13 +87,13 @@ for p0, hist in zip(p0_list[:-1], hist_list[:-1]):
     dp_list.append(dp)
     corr_list.append(corr)
 
-dp = numpy.concatenate(dp_list)
-corr = numpy.concatenate(corr_list)
+dp = np.concatenate(dp_list)
+corr = np.concatenate(corr_list)
 
 dp = dp[(corr > 0.7) & (corr < 1.3)]
 corr = corr[(corr > 0.7) & (corr < 1.3)]
 
-pars = numpy.polyfit(dp, corr, 3)
+pars = np.polyfit(dp, corr, 3)
 print(pars)
 
 with PdfPages('result.pdf') as pdf:
@@ -117,7 +117,7 @@ with PdfPages('result.pdf') as pdf:
     color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
     for color, dp, corr in zip(color_list, dp_list, corr_list):
         plt.plot(dp, corr, color + '.', markersize=2.5)
-    dp_fit = numpy.linspace(-0.036, 0.0385, 100)
+    dp_fit = np.linspace(-0.036, 0.0385, 100)
     plt.plot(
         dp_fit,
         sum(dp_fit**i * par for i, par in enumerate(pars[::-1])),

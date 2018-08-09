@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# Author: Chao Gu, 2018
 
 import sqlite3
 import time
@@ -9,6 +9,11 @@ __all__ = ['RunDB']
 
 
 class RunDB():
+    """
+    Run Database Interface
+    ----------------------
+    """
+
     variables = [
         ('run_quality', 'RunQuality', 'int'),
         ('run_status', 'RunStatus', 'int'),

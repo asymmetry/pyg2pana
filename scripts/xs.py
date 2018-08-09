@@ -4,7 +4,7 @@ from os.path import join
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 
 from pyg2pana import Data, SimFile, configs
 
@@ -57,9 +57,9 @@ for key, value in run_list.items():
 
     w = get_weight(data.rec.d[data.cuts], correction)
 
-    xs, _ = numpy.histogram(data.nu[data.cuts], **binning, weights=w)
-    exs, _ = numpy.histogram(data.nu[data.cuts], **binning)
-    exs[exs > 0] = 1 / numpy.sqrt(exs[exs > 0])
+    xs, _ = np.histogram(data.nu[data.cuts], **binning, weights=w)
+    exs, _ = np.histogram(data.nu[data.cuts], **binning)
+    exs[exs > 0] = 1 / np.sqrt(exs[exs > 0])
 
     xs = xs * data.scale / acceptance
     lumi = ((data.charge / charge_e) *
@@ -71,7 +71,7 @@ for key, value in run_list.items():
     xs_list.append(xs)
     exs_list.append(exs)
 
-nu = numpy.linspace(
+nu = np.linspace(
     binning['range'][0] +
     (binning['range'][1] - binning['range'][0]) / binning['bins'] / 2,
     binning['range'][1] -
