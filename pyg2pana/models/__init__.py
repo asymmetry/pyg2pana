@@ -4,11 +4,13 @@ Cross Section Models
 
 Provide a few elastic and inelastic electron scattering cross section models.
 
-    pbosted -- Peter Bosted's cross section model
+    Elastic -- Elastic cross section model
+    PBosted -- Peter Bosted's model
     radiate -- Functions to calculate radiative effect
 """
 
-from . import pbosted
+from .elastic import Elastic
+from .pbosted import PBosted
 from . import radiate
 
 __all__ = [s for s in dir() if not s.startswith('_')]

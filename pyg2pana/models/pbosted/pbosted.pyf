@@ -3,7 +3,7 @@
 
 python module _pbosted ! in 
     interface  ! in :_pbosted
-        subroutine cal_xs(z,a,e,ep,theta,xs,n) ! in :_pbosted:pbosted.f95
+        subroutine cal_xs_array(z,a,e,ep,theta,xs,n) ! in :_pbosted:pbosted.f95
             integer*8 intent(in) :: z
             integer*8 intent(in) :: a
             double precision dimension(n),intent(in) :: e
@@ -11,7 +11,15 @@ python module _pbosted ! in
             double precision dimension(n),intent(in),depend(n) :: theta
             double precision dimension(n),intent(out),depend(n) :: xs
             integer, optional,intent(hide),check(len(e)>=n),depend(e) :: n=len(e)
-        end subroutine cal_xs
+        end subroutine cal_xs_array
+        subroutine cal_xs_scalar(z,a,e,ep,theta,xs) ! in :_pbosted:pbosted.f95
+            integer*8 intent(in) :: z
+            integer*8 intent(in) :: a
+            double precision intent(in) :: e
+            double precision intent(in) :: ep
+            double precision intent(in) :: theta
+            double precision intent(out) :: xs
+        end subroutine cal_xs_scalar
     end interface 
 end python module _pbosted
 
