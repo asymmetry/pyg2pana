@@ -42,6 +42,7 @@ class Elastic():
 
         if (z, a) == (1, 1):
             from ._proton import ge as ge_proton, gm as gm_proton
+
             self.ff_func = partial(
                 self._ff_sachs,
                 ge_func=ge_proton,
@@ -49,8 +50,11 @@ class Elastic():
             )
         elif (z, a) in ((2, 4), (6, 12), (7, 14)):
             from ._density import get_density_func
+
             charge_density = get_density_func('charge', z, a)
             magnet_density = get_density_func('magnetization', z, a)
+
+            # get the normalization factors
             if charge_density is not None:
                 self.charge_density_0, _ = integrate.quad(
                     lambda x: charge_density(x) * x**2,
@@ -61,6 +65,7 @@ class Elastic():
                     lambda x: magnet_density(x) * x**2,
                     *(0, _rho_limit),
                 )
+
             self.ff_func = partial(
                 self._ff_density,
                 charge_density_func=charge_density,
@@ -85,6 +90,7 @@ class Elastic():
             e, theta = np.broadcast_arrays(e, theta)
 
         result = self._xs(self.z, self.a, e, theta)
+
         return result
 
     def _xs(self, z, _, e, theta):
@@ -122,15 +128,19 @@ class Elastic():
 
         return result
 
-    def _ff_sachs(self, e, q2, ge_func, gm_func):
+    def _tau_epsilon(self, e, q2):
         el = e - q2 / (2 * self.m)
         sin2_theta_2 = q2 / (4 * e * el)
         cos2_theta_2 = 1 - sin2_theta_2
         tan2_theta_2 = sin2_theta_2 / cos2_theta_2
-        ge = ge_func(q2)
-        gm = gm_func(q2)
         tau = q2 / (4 * self.m**2)
         epsilon = 1 / (1 + 2 * (1 + tau) * tan2_theta_2)
+        return tau, epsilon
+
+    def _ff_sachs(self, e, q2, ge_func, gm_func):
+        tau, epsilon = self._tau_epsilon(e, q2)
+        ge = ge_func(q2)
+        gm = gm_func(q2)
         return (epsilon * ge**2 + tau * gm**2) / (epsilon * (1 + tau))
 
     def _ge_integrand(self, r, q, charge_density_func):
@@ -144,9 +154,10 @@ class Elastic():
         return result
 
     def _ff_density(self, e, q2, charge_density_func, magnet_density_func):
+        tau, epsilon = self._tau_epsilon(e, q2)
+
         q = np.sqrt(q2)
         q_fm = q * _gev_to_inv_fm
-
         if np.isscalar(q_fm):
             ge, gm = 0, 0
             if charge_density_func is not None:
@@ -187,10 +198,4 @@ class Elastic():
                         args=(iq_fm, magnet_density_func),
                     )
 
-        el = e - q2 / (2 * self.m)
-        sin2_theta_2 = q2 / (4 * e * el)
-        cos2_theta_2 = 1 - sin2_theta_2
-        tan2_theta_2 = sin2_theta_2 / cos2_theta_2
-        tau = q2 / (4 * self.m**2)
-        epsilon = 1 / (1 + 2 * (1 + tau) * tan2_theta_2)
         return (epsilon * ge**2 + tau * gm**2) / (epsilon * (1 + tau))

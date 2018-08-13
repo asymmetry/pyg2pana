@@ -3,7 +3,6 @@
 import numpy as np
 
 from . import _pbosted
-from ..radiate import radiate_inelastic_xs as rad
 
 __all__ = ['PBosted']
 
@@ -51,6 +50,7 @@ class PBosted():
             e, ep, theta = np.broadcast_arrays(e, ep, theta)
 
         if self.radiate:
+            from ..radiate import radiate_inelastic_xs as rad
             result = rad(self._xs, self.z, self.a, e, ep, theta, tb, ta)
         else:
             result = self._xs(self.z, self.a, e, ep, theta)
