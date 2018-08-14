@@ -3,7 +3,7 @@
 import numpy as np
 from scipy import constants, integrate, special
 
-from ._tools import mass
+from .tools import mass
 
 __all__ = ['radiate_inelastic_xs']
 

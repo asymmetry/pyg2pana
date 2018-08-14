@@ -5,7 +5,7 @@ from os.path import exists, splitext
 
 import numpy as np
 
-from .run_db import RunDB
+from ._run_db import RunDB
 
 __all__ = ['SimFile']
 

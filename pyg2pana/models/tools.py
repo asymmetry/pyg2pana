@@ -2,6 +2,8 @@
 
 from scipy import constants
 
+__all__ = ['mass']
+
 _ma = constants.value('atomic mass constant energy equivalent in MeV') / 1000
 
 

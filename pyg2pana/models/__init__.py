@@ -11,6 +11,6 @@ Provide a few elastic and inelastic electron scattering cross section models.
 
 from .elastic import Elastic
 from .pbosted import PBosted
-from . import radiate
+from . import radiate, tools
 
 __all__ = [s for s in dir() if not s.startswith('_')]
