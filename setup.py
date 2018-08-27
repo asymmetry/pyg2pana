@@ -24,6 +24,9 @@ def setup_package():
     else:
         build_requires = []
 
+    with open('requirements.txt', 'r') as f:
+        install_requires = f.read().splitlines()
+
     metadata = dict(
         name='pyg2pana',
         author='Chao Gu',
@@ -31,7 +34,7 @@ def setup_package():
         maintainer='Chao Gu',
         maintainer_email='guchao.pku@gmail.com',
         description=
-        'Analysis software for Jefferson Lab Experiment E08-027 (g2p).',
+        'Analysis Software for Jefferson Lab Experiment E08-027 (g2p).',
         license='GPL-3.0',
         url='https://github.com/asymmetry/pyg2pana',
         classifiers=[
@@ -54,7 +57,7 @@ def setup_package():
         platforms='Any',
         python_requires='>=3.4',
         setup_requires=build_requires,
-        install_requires=build_requires,
+        install_requires=install_requires,
     )
 
     metadata['configuration'] = configuration

@@ -10,8 +10,6 @@ from ..tools import mass
 __all__ = ['Elastic']
 
 _alpha = constants.alpha
-_me = constants.value('electron mass energy equivalent in MeV') / 1000
-_m_p = constants.value('proton mass energy equivalent in MeV') * 1e-3
 _inv_fm_to_gev = constants.hbar * constants.c / constants.e * 1e6
 _gev_to_inv_fm = 1 / _inv_fm_to_gev
 _inv_gev_to_fm = _inv_fm_to_gev

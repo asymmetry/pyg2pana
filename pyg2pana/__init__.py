@@ -1,5 +1,5 @@
 """
-Analysis Softwares for g2p Experiment
+Analysis Software for g2p Experiment
 =====================================
 """
 
