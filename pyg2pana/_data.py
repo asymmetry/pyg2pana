@@ -25,9 +25,7 @@ class Data():
         numpy.
     """
 
-    def __init__(self, files, *args, **kwargs):
-        self._db = None
-        self._ref_db = None
+    def __init__(self, files, *, db=None, refdb=None, **kwargs):
         self._cuts = None
 
         self._var_list = ['hel', 'bpm', 'sr', 'gold', 'rec']
@@ -35,23 +33,24 @@ class Data():
         if not isinstance(files, (list, tuple)):
             files = [files]
 
+        self.run = int(re.findall(r'g2p_(\d+).*\.\D*', files[0])[0])
+
+        if db is None:
+            self._db = RunDB(self.run)
+        else:
+            self._db = db
+
+        if refdb is None:
+            self._ref_db = self._db
+        else:
+            self._ref_db = refdb
+
         if all(ext == '.root' for _, ext in map(splitext, files)):
-            self.run = int(re.findall(r'g2p_(\d+).*\.root', files[0])[0])
-            self._load_root(files, *args, **kwargs)
+            self._load_root(files, **kwargs)
         elif all(ext == '.npz' for _, ext in map(splitext, files)):
-            self.run = int(re.findall(r'g2p_(\d+).*\.npz', files[0])[0])
             self._load_numpy(files[0])
         else:
             raise ValueError('bad filename')
-
-        if self._db is None:
-            self._db = RunDB(self.run)
-
-        ref_run = kwargs.get('ref', None)
-        if ref_run is not None:
-            self._ref_db = RunDB(ref_run)
-        else:
-            self._ref_db = self._db
 
         self.e0 = self._db.beam_energy
         self.p0 = self._db.d1p * 1000
@@ -59,17 +58,17 @@ class Data():
         self.charge_plus = self._db.charge_plus
         self.charge_minus = self._db.charge_minus
 
-    def _load_root(self, files, **kwargs):
+    def _load_root(self, files, *, start=None, stop=None, **_):
+        import sys
+        sys.argv.append('-b')
+        from ROOT import TChain
         from root_numpy import tree2array
-        import ROOT
-        ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
-        tree = ROOT.TChain('T')
+        tree = TChain('T')
         for file_ in files:
             if exists(file_):
                 tree.Add(file_)
 
-        self._db = RunDB(self.run)
         p0 = self._db.d1p * 1000
 
         if self.run < 20000:
@@ -107,7 +106,8 @@ class Data():
             tree,
             hel_vars + bpm_vars + sr_vars + gold_vars + rec_vars,
             cut,
-            stop=kwargs.get('stop', None),
+            start=start,
+            stop=stop,
         )
 
         self.hel = np.rec.fromarrays(

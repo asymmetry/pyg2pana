@@ -25,9 +25,7 @@ class SimFile():
         numpy.
     """
 
-    def __init__(self, files, *args, **kwargs):
-        self._db = None
-        self._ref_db = None
+    def __init__(self, files, *, db=None, refdb=None, **kwargs):
         self._cuts = None
 
         self._var_list = ['bpm', 'rec', 'xs']
@@ -35,35 +33,37 @@ class SimFile():
         if not isinstance(files, (list, tuple)):
             files = [files]
 
+        self.run = int(re.findall(r'sim_(\d+).*\.\D*', files[0])[0])
+
+        if db is None:
+            self._db = RunDB(self.run)
+        else:
+            self._db = db
+
+        if refdb is None:
+            self._ref_db = db
+        else:
+            self._ref_db = refdb
+
         if all(ext == '.root' for _, ext in map(splitext, files)):
-            self.run = int(re.findall(r'sim_(\d+).*\.root', files[0])[0])
-            self._load_root(files, *args, **kwargs)
+            self._load_root(files, **kwargs)
         elif all(ext == '.npz' for _, ext in map(splitext, files)):
-            self.run = int(re.findall(r'sim_(\d+).*\.npz', files[0])[0])
-            self._load_numpy(files[0], *args, **kwargs)
+            self._load_numpy(files[0])
         else:
             raise ValueError('bad filename')
-
-        if self._db is None:
-            self._db = RunDB(self.run)
-
-        ref_run = kwargs.get('ref', None)
-        if ref_run is not None:
-            self._ref_db = RunDB(ref_run)
-        else:
-            self._ref_db = self._db
 
         self.e0 = self._db.beam_energy
         self.p0 = self._db.d1p * 1000
 
         self.range = {'d': 0.08, 't': 0.12, 'p': 0.08}
 
-    def _load_root(self, files, **kwargs):
+    def _load_root(self, files, *, start=None, stop=None, **_):
+        import sys
+        sys.argv.append('-b')
+        from ROOT import TChain
         from root_numpy import tree2array
-        import ROOT
-        ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
-        tree = ROOT.TChain('T')
+        tree = TChain('T')
         for file_ in files:
             if exists(file_):
                 tree.Add(file_)
@@ -80,7 +80,8 @@ class SimFile():
             tree,
             bpm_vars + rec_vars + xs_vars,
             cut,
-            stop=kwargs.get('stop', None),
+            start=start,
+            stop=stop,
         )
 
         self.bpm = np.rec.fromarrays(
